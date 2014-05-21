@@ -3,7 +3,7 @@ package com.openatk.libtrello;
 import java.util.Date;
 
 public class TrelloObject {
-
+	
 	public TrelloObject(){
 		
 	}

@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 public class TrelloContentProvider extends ContentProvider {
 	// used for the UriMacher
@@ -235,6 +236,7 @@ public class TrelloContentProvider extends ContentProvider {
 			case JSON_CARD:
 				json = values.getAsString("json");
 				TrelloCard card = gson.fromJson(json, TrelloCard.class);
+				Log.d("TrelloContentProvider - update card:", "from json:" + json);
 				rowsUpdated = this.updateCard(card);
 				break;
 			case JSON_LIST:

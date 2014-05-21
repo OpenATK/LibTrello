@@ -7,25 +7,27 @@ public class TrelloCard extends TrelloObject {
 	String localId;
 	
 	String listId;
-	Date listId_changed = new Date(0);
+	Date listId_changed;
 	
 	String boardId;
-	Date boardId_changed = new Date(0);
+	Date boardId_changed;
 	
 	String name;
-	Date name_changed = new Date(0);
+	Date name_changed;
 	
 	String desc;
-	Date desc_changed = new Date(0);
+	Date desc_changed;
 	
 	String labels;
-	Date labels_changed = new Date(0);
+	Date labels_changed;
 	
-	Boolean closed = false;
-	Date closed_changed = new Date(0);
+	Boolean closed;
+	Date closed_changed;
 	
 	Integer pos;
-	Date pos_changed = new Date(0);
+	Date pos_changed;
+	
+	TrelloCard source;
 	
 	public static final String COL_ID = "id";
 	public static final String COL_LOCAL_ID = "local_id";
@@ -44,20 +46,24 @@ public class TrelloCard extends TrelloObject {
 	public static final String COL_CLOSED_CHANGED = "closed_changed";
 	public static final String COL_POS = "pos";
 	public static final String COL_POS_CHANGED = "pos_changed";
-
-	
-	//public static final String[] COLUMNS = new String[] { COL_ID, COL_LOCAL_ID, COL_LIST_ID, COL_LIST_ID_CHANGED, COL_BOARD_ID, COL_BOARD_ID_CHANGED, COL_NAME, COL_NAME_CHANGED, COL_DESC, COL_DESC_CHANGED, COL_LABELS, COL_LABELS_CHANGED, COL_CLOSED, COL_CLOSED_CHANGED, COL_POS, COL_POS_CHANGED };
-
 	
 	public TrelloCard(){
 		
 	}
 	
-	/*public Object[] toObjectArray(){		
-		return new Object[] { this.getId(), this.getLocalId(), this.getListId(), TrelloObject.DateToUnix(this.getListIdChanged()), this.getBoardId(), TrelloObject.DateToUnix(this.getBoardIdChanged()), this.getName(), TrelloObject.DateToUnix(this.getNameChanged()), this.getDesc(), TrelloObject.DateToUnix(this.getDescChanged()), this.getLabels(), TrelloObject.DateToUnix(this.getLabelsChanged()), this.getClosed(), this.getPos(), TrelloObject.DateToUnix(this.getPosChanged()) };
-	}*/
+	public TrelloCard(Object makeNull){
+		if(makeNull == null){
+			this.listId = null;
+			this.boardId = null;
+			this.name = null;
+			this.desc = null;
+			this.labels = null;
+			this.closed = null;
+			this.pos = null;;
+			this.source = null;
+		}
+	}
 	
-
 	public String getId() {
 		return id;
 	}
@@ -184,6 +190,14 @@ public class TrelloCard extends TrelloObject {
 
 	public void setPos_changed(Date pos_changed) {
 		this.pos_changed = pos_changed;
+	}
+
+	public TrelloCard getSource() {
+		return source;
+	}
+
+	public void setSource(TrelloCard source) {
+		this.source = source;
 	}
 
 	

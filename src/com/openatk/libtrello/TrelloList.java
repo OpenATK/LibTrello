@@ -6,17 +6,17 @@ public class TrelloList extends TrelloObject {
 	String id;
 	String localId;
 	String boardId;
-	Date boardId_changed = new Date(0);
+	Date boardId_changed;
 
 	String name;
-	Date name_changed = new Date(0);
+	Date name_changed;
 
-	Boolean closed = false;
-	Date closed_changed = new Date(0);
+	Boolean closed;
+	Date closed_changed;
 	
 	Integer pos;
-	Date pos_changed = new Date(0);
-
+	Date pos_changed;
+	TrelloList source;
 	
 	public static final String COL_ID = "id";
 	public static final String COL_LOCAL_ID = "local_id";
@@ -37,6 +37,22 @@ public class TrelloList extends TrelloObject {
 	
 	public TrelloList(){
 		
+	}
+	
+	public TrelloList(Object makeNull){
+		if(makeNull == null){
+			this.id = null;
+			this.localId = null;
+			this.boardId = null;
+			this.name = null;
+			this.pos = null;
+			this.closed = null;
+			this.source = null;
+			this.boardId_changed = null;
+			this.name_changed = null;
+			this.closed_changed = null;
+			this.pos_changed = null;
+		}
 	}
 
 	public String getId() {
@@ -118,7 +134,13 @@ public class TrelloList extends TrelloObject {
 	public void setClosed_changed(Date closed_changed) {
 		this.closed_changed = closed_changed;
 	}
-	
-	
-	
+
+	public TrelloList getSource() {
+		return source;
+	}
+
+	public void setSource(TrelloList source) {
+		this.source = source;
+	}
+
 }

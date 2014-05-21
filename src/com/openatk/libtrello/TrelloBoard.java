@@ -7,22 +7,24 @@ public class TrelloBoard extends TrelloObject {
 	String localId;
 	
 	String organizationId;
-	Date organizationId_changed = new Date(0);
+	Date organizationId_changed;
 	
 	String name;
-	Date name_changed = new Date(0);
+	Date name_changed;
 
 	String desc;
-	Date desc_changed = new Date(0);
+	Date desc_changed;
 	
 	String labelNames;
-	Date labelNames_changed = new Date(0);
+	Date labelNames_changed;
 	
-	Boolean closed = false;
-	Date closed_changed = new Date(0);
+	Boolean closed;
+	Date closed_changed;
 	
 	String lastSyncDate = "";
 	String lastTrelloActionDate = "";
+	
+	TrelloBoard source;
 	
 	public static final String COL_ID = "id";
 	public static final String COL_LOCAL_ID = "local_id";
@@ -57,6 +59,7 @@ public class TrelloBoard extends TrelloObject {
 			this.desc = null;
 			this.closed = null;
 			this.labelNames = null;
+			this.source = null;
 		}
 	}
 	
@@ -179,4 +182,14 @@ public class TrelloBoard extends TrelloObject {
 	public void setLastTrelloActionDate(String lastTrelloActionDate) {
 		this.lastTrelloActionDate = lastTrelloActionDate;
 	}
+
+	public TrelloBoard getSource() {
+		return source;
+	}
+
+	public void setSource(TrelloBoard source) {
+		this.source = source;
+	}
+	
+	
 }
