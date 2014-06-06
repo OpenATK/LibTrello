@@ -1,8 +1,11 @@
 package com.openatk.libtrello;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import com.google.gson.Gson;
 
@@ -10,6 +13,8 @@ import android.accounts.Account;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -31,20 +36,28 @@ public class TrelloContentProvider extends ContentProvider {
 	private static final int JSON_BOARD = 9;
 	private static final int ORG = 10;
 
+	private static final int GET_INFO = 11;
+	private static final int SET_INFO = 12;
 
-	private static final String AUTHORITY = "com.openatk.rockapp.trello.provider";
 
+	private static final String AUTHORITY = "com.openatk.field_work.trello.provider";
+
+	//query
 	private static final String BASE_PATH = "todos"; //cards, lists, boards
 	private static final String CARD_PATH = "cards"; //cards
 	private static final String LIST_PATH = "lists"; //lists
 	private static final String BOARD_PATH = "boards"; //boards
-	
-	
+	private static final String JSON_GET_INFO = "get_sync_info"; //info query
+
+	//Update
 	private static final String JSON_CARD_PATH = "card"; //card
 	private static final String JSON_LIST_PATH = "list"; //list
 	private static final String JSON_BOARD_PATH = "board"; //board
 	private static final String ORG_PATH = "organization"; //organization
+	private static final String JSON_SET_INFO = "set_sync_info"; //update
 
+
+	private static SimpleDateFormat dateFormaterUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
 	public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH);
 
@@ -64,7 +77,9 @@ public class TrelloContentProvider extends ContentProvider {
 		sURIMatcher.addURI(AUTHORITY, JSON_LIST_PATH, JSON_LIST);
 		sURIMatcher.addURI(AUTHORITY, JSON_BOARD_PATH, JSON_BOARD);
 		sURIMatcher.addURI(AUTHORITY, ORG_PATH, ORG);
-
+		
+		sURIMatcher.addURI(AUTHORITY, JSON_GET_INFO, GET_INFO);
+		sURIMatcher.addURI(AUTHORITY, JSON_SET_INFO, SET_INFO);
 	}
 		
 	@Override
@@ -73,14 +88,37 @@ public class TrelloContentProvider extends ContentProvider {
 		
 	}
 
-
+	
 	public static void Sync(String packageName){
-		Account account = null;
 		Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true); // Performing a sync no matter if it's off
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true); // Performing a sync no matter if it's off
-        bundle.putString("appPackage", packageName);
-        ContentResolver.requestSync(account, "com.openatk.trello.provider", bundle);
+        TrelloContentProvider.Sync(packageName, bundle);
+	}
+	public static void Sync(String packageName, Bundle extras){
+		Account account = null;
+		extras.putString("appPackage", packageName);
+        ContentResolver.requestSync(account, "com.openatk.trello.provider", extras);
+	}
+	
+	public static String dateToStringUTC(Date date) {
+		if(date == null){
+			return null;
+		}
+		return TrelloContentProvider.dateFormaterUTC.format(date);
+	}
+	
+	public static Date stringToDateUTC(String date) {
+		if(date == null){
+			return null;
+		}
+		Date d;
+		try {
+			d = TrelloContentProvider.dateFormaterUTC.parse(date);
+		} catch (ParseException e) {
+			d = new Date(0);
+		}
+		return d;
 	}
 	
 	@Override
@@ -103,12 +141,27 @@ public class TrelloContentProvider extends ContentProvider {
 				items.add(this.getCard(uri.getLastPathSegment()));
 				cursor = this.objectsToJsonCursor(items);
 				break;
+			case GET_INFO:
+				//Return info as cursor
+				cursor = this.objectToJsonCursor(this.getSyncInfo());
+				break;
 			default:
 				throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
-
 		// make sure that potential listeners are getting notified
 		cursor.setNotificationUri(getContext().getContentResolver(), uri);
+		return cursor;
+	}
+	
+	private Cursor objectToJsonCursor(Object item){
+		//One column in cursor, it is the json representation of the card
+		//String[] menuCols = TrelloCard.COLUMNS;
+		String[] columns = {"json"};
+	    MatrixCursor cursor = new MatrixCursor(columns);
+		//Convert object to json
+		Gson gson = new Gson();
+		String json = gson.toJson(item);
+		cursor.addRow(new Object[] { json });
 		return cursor;
 	}
 	
@@ -127,6 +180,32 @@ public class TrelloContentProvider extends ContentProvider {
 		return cursor;
 	}
 	
+	
+	private TrelloSyncInfo getSyncInfo(){
+		TrelloSyncInfo theInfo = new TrelloSyncInfo();
+		SharedPreferences prefs = this.getContext().getSharedPreferences(AUTHORITY, Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
+	
+		String strDate = prefs.getString("dateLastSync", null);
+		Boolean autoSync = prefs.getBoolean("TrelloContentProvider.autoSync", false);
+		Boolean sync = prefs.getBoolean("TrelloContentProvider.sync", false);
+		
+		if(strDate != null) theInfo.setLastSync(TrelloContentProvider.stringToDateUTC(strDate));
+		theInfo.setAutoSync(autoSync);
+		theInfo.setSync(sync);
+
+		return theInfo;
+	}
+	
+	private void setSyncInfo(TrelloSyncInfo newInfo){
+		SharedPreferences prefs = this.getContext().getSharedPreferences(AUTHORITY, Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
+		SharedPreferences.Editor editor = prefs.edit();
+		
+		if(newInfo.getLastSync() != null) editor.putString("dateLastSync", dateToStringUTC(newInfo.getLastSync()));
+		if(newInfo.getAutoSync() != null) editor.putBoolean("TrelloContentProvider.autoSync", newInfo.getAutoSync());
+		if(newInfo.getSync() != null) editor.putBoolean("TrelloContentProvider.sync", newInfo.getSync());
+
+		editor.commit();
+	}
 	
 	//Custom implemented in every app
 	public List<TrelloCard> getCards(String boardTrelloId){
@@ -253,6 +332,11 @@ public class TrelloContentProvider extends ContentProvider {
 				String oldOrg = values.getAsString("oldOrg");
 				String newOrg = values.getAsString("newOrg");
 				rowsUpdated = this.updateOrganization(oldOrg, newOrg);
+				break;
+			case SET_INFO:
+				json = values.getAsString("json");
+				TrelloSyncInfo theInfo = gson.fromJson(json, TrelloSyncInfo.class);
+				setSyncInfo(theInfo);
 				break;
 			default:
 				throw new IllegalArgumentException("Unknown URI: " + uri);
