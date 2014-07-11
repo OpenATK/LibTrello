@@ -6,16 +6,23 @@ public class TrelloSyncInfo {
 	private Boolean autoSync = null;
 	private Boolean sync = null;
 	private Date lastSync = null;
+	private Integer interval = null;
 	
 	public TrelloSyncInfo() {
 
 	}
-	public TrelloSyncInfo(boolean autoSync, boolean sync, Date lastSync) {
+
+	
+	public TrelloSyncInfo(Boolean autoSync, Boolean sync, Date lastSync,
+			Integer interval) {
 		super();
 		this.autoSync = autoSync;
 		this.sync = sync;
 		this.lastSync = lastSync;
+		this.interval = interval;
 	}
+
+
 	public Boolean getAutoSync() {
 		return autoSync;
 	}
@@ -33,6 +40,12 @@ public class TrelloSyncInfo {
 	}
 	public void setLastSync(Date lastSync) {
 		this.lastSync = lastSync;
+	}
+	public Integer getInterval() {
+		return interval;
+	}
+	public void setInterval(Integer interval) {
+		this.interval = interval;
 	}
 	
 

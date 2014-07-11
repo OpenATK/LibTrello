@@ -95,10 +95,16 @@ public class TrelloContentProvider extends ContentProvider {
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true); // Performing a sync no matter if it's off
         TrelloContentProvider.Sync(packageName, bundle);
 	}
+	
 	public static void Sync(String packageName, Bundle extras){
 		Account account = null;
 		extras.putString("appPackage", packageName);
         ContentResolver.requestSync(account, "com.openatk.trello.provider", extras);
+	}
+	
+	public static boolean isInstalled(){
+		Account account = null;
+		return ContentResolver.getIsSyncable(account, "com.openatk.trello.provider") == 1 ? true : false;
 	}
 	
 	public static String dateToStringUTC(Date date) {
@@ -188,11 +194,13 @@ public class TrelloContentProvider extends ContentProvider {
 		String strDate = prefs.getString("dateLastSync", null);
 		Boolean autoSync = prefs.getBoolean("TrelloContentProvider.autoSync", false);
 		Boolean sync = prefs.getBoolean("TrelloContentProvider.sync", false);
-		
+		Integer interval = prefs.getInt("TrelloContentProvider.interval", 30);
+
 		if(strDate != null) theInfo.setLastSync(TrelloContentProvider.stringToDateUTC(strDate));
 		theInfo.setAutoSync(autoSync);
 		theInfo.setSync(sync);
-
+		theInfo.setInterval(interval);
+		
 		return theInfo;
 	}
 	
@@ -203,7 +211,7 @@ public class TrelloContentProvider extends ContentProvider {
 		if(newInfo.getLastSync() != null) editor.putString("dateLastSync", dateToStringUTC(newInfo.getLastSync()));
 		if(newInfo.getAutoSync() != null) editor.putBoolean("TrelloContentProvider.autoSync", newInfo.getAutoSync());
 		if(newInfo.getSync() != null) editor.putBoolean("TrelloContentProvider.sync", newInfo.getSync());
-
+		if(newInfo.getInterval() != null) editor.putInt("TrelloContentProvider.interval", newInfo.getInterval());
 		editor.commit();
 	}
 	
@@ -336,6 +344,7 @@ public class TrelloContentProvider extends ContentProvider {
 			case SET_INFO:
 				json = values.getAsString("json");
 				TrelloSyncInfo theInfo = gson.fromJson(json, TrelloSyncInfo.class);
+				Log.d("TrelloContentProvider", json);
 				setSyncInfo(theInfo);
 				break;
 			default:
